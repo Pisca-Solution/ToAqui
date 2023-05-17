@@ -42,12 +42,11 @@
         app:srcCompat="@mipmap/logofacens" />
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/mensagemFeed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:height="24dp"
         android:fontFamily="@font/archivo_black"
-        android:text="Presença registrada com sucesso!"
         android:textColor="#858484"
         android:textSize="20sp"
         app:layout_constraintBottom_toTopOf="@+id/button3"
