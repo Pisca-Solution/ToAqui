@@ -2,19 +2,19 @@ package com.example.toaqui.model;
 
 public class Token {
 
-    private Long class_id;
+    private Long classId;
     private String perfil;
     private String token;
 
     public Token() {
     }
 
-    public Long getClass_id() {
-        return class_id;
+    public Long getClassId() {
+        return classId;
     }
 
-    public void setClass_id(Long class_id) {
-        this.class_id = class_id;
+    public void setClassId(Long classId) {
+        this.classId = classId;
     }
 
     public String getPerfil() {

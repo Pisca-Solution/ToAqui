@@ -15,11 +15,10 @@ import com.example.toaqui.api.AlunoService;
 import com.example.toaqui.api.ApiClient;
 import com.example.toaqui.api.QrcodeService;
 import com.example.toaqui.api.UsuarioService;
-import com.example.toaqui.model.Aluno;
+import com.example.toaqui.model.Mensagem;
 import com.example.toaqui.model.Qrcode;
 import com.example.toaqui.model.Token;
 import com.example.toaqui.model.Usuario;
-import com.google.gson.JsonParser;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -41,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     String tempoExpiration;
     String authToken;
 
-    Object chamadaId;
+    String chamadaId;
 
     Long alunoId;
 
@@ -50,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     UsuarioService usuarioService;
 
     AlunoService alunoService;
+
+    Loading loading = new Loading(MainActivity.this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +92,8 @@ public class MainActivity extends AppCompatActivity {
 
                     qrcode.setCodigo(obj.get("expiracao").toString());
                     qrcode.setChamadId(obj.get("chamadaId"));
-                    chamadaId = obj.get("chamadaId");
+                    chamadaId = obj.get("chamadaId").toString();
+
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
@@ -114,10 +116,9 @@ public class MainActivity extends AppCompatActivity {
                         qrcodeService = ApiClient.getQrcodeService(response.body().getToken());
                         alunoService = ApiClient.getAlunoService(response.body().getToken());
 
-                        System.out.println(response.body().getToken());
                         authToken = response.body().getToken();
+                        alunoId = response.body().getClassId();
 
-                        buscarDados(response.body().getClass_id());
                         scanQRCode();
                     }else{
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -127,12 +128,19 @@ public class MainActivity extends AppCompatActivity {
                         AlertDialog alerta = builder.create();
                         alerta.show();
                     }
+                }else{
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Autenticação");
+                    builder.setMessage("Não foi possível fazer login, usuário ou senha errados.");
+
+                    AlertDialog alerta = builder.create();
+                    alerta.show();
                 }
             }
 
             @Override
             public void onFailure(Call<Token> call, Throwable t) {
-                Log.e("Erro API", t.toString());
+                Log.e("Erro API", t.toString() + ": " + "autenticar");
             }
         });
     }
@@ -146,6 +154,8 @@ public class MainActivity extends AppCompatActivity {
         integrator.setBeepEnabled(false);
         integrator.setBarcodeImageEnabled(false);
         integrator.initiateScan();
+
+        loading.loadingStart();
     }
 
     private void descriptografarMensagem(Qrcode codigo){
@@ -173,50 +183,38 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Log.e("Erro API", t.toString());
-            }
-        });
-    }
-
-    private void buscarDados(Long id){
-        Call<Aluno> call = alunoService.buscarDados(id);
-
-        call.enqueue(new Callback<Aluno>() {
-            @Override
-            public void onResponse(Call<Aluno> call, Response<Aluno> response) {
-                if(response.isSuccessful()){
-                    alunoId = response.body().getId();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Aluno> call, Throwable t) {
-                Log.e("Erro API", t.toString());
+                Log.e("Erro API", t.toString() + ": " + "descriptografarMensagem");
             }
         });
     }
 
     private void incluirAlunoChamada(Long alunoId){
-        Call<String> call = alunoService.incluirAlunoChamada(chamadaId, alunoId);
+        Call<Mensagem> call = alunoService.incluirAlunoChamada(Long.parseLong(chamadaId), alunoId);
 
-        call.enqueue(new Callback<String>() {
+        call.enqueue(new Callback<Mensagem>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                System.out.println(response.body());
+            public void onResponse(Call<Mensagem> call, Response<Mensagem> response) {
                 if(response.isSuccessful()){
-                    Bundle bundle = new Bundle();
-                    bundle.putString("message", response.body());
+                    System.out.println("Entrou aqui - Incluir Chamada");
 
-                    Intent intent = new Intent(MainActivity.this, feedback.class);
+                    loading.dismissLoading();
+
+                    Bundle bundle = new Bundle();
+                    bundle.putString("message", response.body().getMensagem());
+
+                    Intent intent = new Intent(MainActivity.this, Feedback.class);
 
                     intent.putExtras(bundle);
                     MainActivity.this.startActivity(intent);
+
+                    chamadaId= null;
+                    authToken = "";
                 }
             }
 
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Log.e("Erro API", t.toString());
+            public void onFailure(Call<Mensagem> call, Throwable t) {
+                Log.e("Erro API", t.toString() + ": " + "incluirAlunoChamada");
             }
         });
     }
