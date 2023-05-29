@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
         if (result != null) {
             if (result.getContents() == null) {
+                loading.dismissLoading();
                 Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
             } else {
                 Qrcode qrcode = new Qrcode();
@@ -121,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
                         scanQRCode();
                     }else{
+                        loading.dismissLoading();
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                         builder.setTitle("Autenticação");
                         builder.setMessage("Não foi possível fazer login, tente acessar a plataforma de professor.");
@@ -129,6 +131,8 @@ public class MainActivity extends AppCompatActivity {
                         alerta.show();
                     }
                 }else{
+                    loading.dismissLoading();
+
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Autenticação");
                     builder.setMessage("Não foi possível fazer login, usuário ou senha errados.");
@@ -175,6 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
                         AlertDialog alerta = builder.create();
                         alerta.show();
+                        loading.dismissLoading();
                     } else {
                         incluirAlunoChamada(alunoId);
                     }
